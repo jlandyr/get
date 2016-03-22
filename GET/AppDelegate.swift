@@ -2,7 +2,7 @@
 //  AppDelegate.swift
 //  GET
 //
-//  Created by Pedro Jose on 21/3/16.
+//  Created by Juan Sebastián Landy Ríos on 21/3/16.
 //  Copyright © 2016 eureka. All rights reserved.
 //
 
