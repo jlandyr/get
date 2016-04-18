@@ -14,10 +14,11 @@ class ViewController: UIViewController {
     @IBOutlet weak var textView: UITextView!
     let urlText = "https://openlibrary.org/api/books?jscmd=data&format=json&bibkeys=ISBN:"
     
+    @IBOutlet weak var imageCover: UIImageView!
     override func viewDidLoad() {
         super.viewDidLoad()
         // Do any additional setup after loading the view, typically from a nib.
-        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: "dismissKeyboard")
+        let tap: UITapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(ViewController.dismissKeyboard))
         view.addGestureRecognizer(tap)
     }
 
@@ -58,6 +59,7 @@ class ViewController: UIViewController {
                     self.textView.text = ""
                    self.textView.text = data as String
                     
+                    
                 })
                 
             }
@@ -81,9 +83,58 @@ class ViewController: UIViewController {
     }
     
     
-    
-    
+    func loadJson(isbn: String)
+    {
+        let urls = NSURL(string:urlText + isbn)
+        let datos = NSData(contentsOfURL: urls!)
+        do{
+            let json = try NSJSONSerialization.JSONObjectWithData(datos!, options: NSJSONReadingOptions.MutableLeaves)
+            let dictionary = json as! NSDictionary
+            let isbnDictionary = dictionary["ISBN:"+isbn] as! NSDictionary
+            
+            let authorsArray = isbnDictionary["authors"] as! NSArray
+            let authors = authorsArray[0] as! NSDictionary
+            let nombreAutor = authors["name"] as! String
+            print("Author: \(authors["name"])")
+            
+            let title = isbnDictionary["title"] as! String
+            print("Title: \(title)")
+            
+            
+            
+            if let cover = isbnDictionary["cover"]
+            {
+                print("Si tiene portada")
+                self.textView.text = "Autor: " + nombreAutor + "\n" + "Título: " + title
+                
+                let coverDictionary = cover as! NSDictionary
+                if let urlCover = coverDictionary["large"]
+                {
+                  loadImageUrl(urlCover as! String)
+                }else if let urlCover = coverDictionary["medium"]
+                {
+                    loadImageUrl(urlCover as! String)
+                }else if let urlCover = coverDictionary["small"]
+                {
+                    loadImageUrl(urlCover as! String)
+                }
+            }
+            else
+            {
+                self.textView.text = "Autor: " + nombreAutor + "\n" + "Título: " + title + "\n" + "NO TIENE PORTADA"
+            }
+        }
+        catch{}
+    }
+    func loadImageUrl(urlString: String) {
+        let url = NSURL(string:urlString)
+        let data = NSData(contentsOfURL:url!)
+        if data != nil {
+            self.imageCover.image = UIImage(data:data!)
+        }
+    }
 }
+
 //MARK: UITextField Delegate
 extension ViewController:UITextFieldDelegate
 {
@@ -93,9 +144,11 @@ extension ViewController:UITextFieldDelegate
         if textField.hasText()
         {
             self.textView.text = "cargando..."
-            searchISBN(textField.text!)
+//            searchISBN(textField.text!)
+            loadJson(textField.text!)
         }
         return true
     }
 }
+
 
